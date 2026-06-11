@@ -358,14 +358,23 @@ async function verPicks(matchId, btn) {
 async function obtenerPredicciones(matchId) {
   const p = E.partidos.find(x => x.id === matchId);
   const llave = "preds26_" + matchId;
-  // si el partido ya tiene resultado, sus predicciones nunca cambian → caché permanente
+  // partido con resultado → sus predicciones ya no cambian → caché permanente
   if (p && p.resultado) {
     const c = localStorage.getItem(llave);
-    if (c) { try { return JSON.parse(c); } catch(e){} }
+    if (c) { try { return JSON.parse(c); } catch (e) {} }
   }
-  const snap = await db.collection("predictions").where("matchId", "==", matchId).get();
-  const arr = snap.docs.map(d => { const x = d.data(); return { uid: x.uid, home: x.home, away: x.away }; });
-  if (p && p.resultado) { try { localStorage.setItem(llave, JSON.stringify(arr)); } catch(e){} }
+  const uids = Object.keys(E.usuarios);
+  const lecturas = await Promise.allSettled(
+    uids.map(u => db.collection("predictions").doc(u + "_" + matchId).get())
+  );
+  const arr = [];
+  lecturas.forEach(r => {
+    if (r.status === "fulfilled" && r.value.exists) {
+      const x = r.value.data();
+      arr.push({ uid: x.uid, home: x.home, away: x.away });
+    }
+  });
+  if (p && p.resultado) { try { localStorage.setItem(llave, JSON.stringify(arr)); } catch (e) {} }
   return arr;
 }
 
@@ -384,51 +393,18 @@ function puntosPartido(pred, res) {
 // =====================================================
 //  POSICIONES
 // =====================================================
-$("#chips-pos").addEventListener("click", ev => {
-  const c = ev.target.closest(".chip"); if (!c) return;
-  if (c.dataset.amb) { E.posAmbito = c.dataset.amb; E.posValor = null; }
-  if (c.dataset.val) E.posValor = c.dataset.val;
-  renderPosiciones();
-});
 
 async function renderPosiciones() {
-  // chips de ámbito
-  if (E.posAmbito === "GRUPO" && !E.posValor) E.posValor = "A";
-  const diasRes = [...new Set(E.partidos.filter(p => p.resultado).map(p => claveDia(p.kickoff)))];
-  if (E.posAmbito === "DIA" && !E.posValor && diasRes.length) E.posValor = diasRes[diasRes.length-1];
-
-  let chips = ["GENERAL","GRUPO","DIA"].map(a =>
-    `<button class="chip ${E.posAmbito===a?'activo':''}" data-amb="${a}">${a==="GENERAL"?"General":a==="GRUPO"?"Por grupo":"Por día"}</button>`
-  ).join("");
-  if (E.posAmbito === "GRUPO") {
-    chips += "<span style='width:100%'></span>" + GRUPOS.map(g =>
-      `<button class="chip ${E.posValor===g?'activo':''}" data-val="${g}">${g}</button>`).join("");
-  }
-  if (E.posAmbito === "DIA") {
-    chips += "<span style='width:100%'></span>" + diasRes.map(d => {
-      const f = new Date(d + "T12:00:00");
-      return `<button class="chip ${E.posValor===d?'activo':''}" data-val="${d}">${f.toLocaleDateString("es-MX",{day:"numeric",month:"short"})}</button>`;
-    }).join("");
-  }
-  $("#chips-pos").innerHTML = chips;
-
   const cont = $("#tabla-posiciones");
-  // partidos que cuentan en este ámbito (solo con resultado)
-  let partidos = E.partidos.filter(p => p.resultado);
-  if (E.posAmbito === "GRUPO") partidos = partidos.filter(p => p.fase === "GRUPOS" && p.grupo === E.posValor);
-  if (E.posAmbito === "DIA")   partidos = partidos.filter(p => claveDia(p.kickoff) === E.posValor);
-
-  if (!partidos.length && E.posAmbito !== "GENERAL") {
-    cont.innerHTML = `<p class="vacio">Todavía no hay resultados capturados aquí.</p>`;
-    return;
-  }
-
   cont.innerHTML = `<p class="vacio">Calculando…</p>`;
+
+  const conResultado = E.partidos.filter(p => p.resultado);
   const puntos = {}, aciertos = {};
   Object.keys(E.usuarios).forEach(u => { puntos[u] = 0; aciertos[u] = 0; });
 
-  for (const p of partidos) {
-    const preds = await obtenerPredicciones(p.id);
+  for (const p of conResultado) {
+    let preds = [];
+    try { preds = await obtenerPredicciones(p.id); } catch (e) { console.error(p.id, e); }
     for (const pr of preds) {
       const g = puntosPartido(pr, p.resultado);
       puntos[pr.uid] = (puntos[pr.uid] || 0) + g;
@@ -436,8 +412,8 @@ async function renderPosiciones() {
     }
   }
 
-  // podio (solo en la tabla general, cuando el admin capturó el podio real)
-  if (E.posAmbito === "GENERAL" && E.config.real1) {
+  // puntos del podio (cuando el admin capture el podio real)
+  if (E.config.real1) {
     try {
       const snap = await db.collection("podium").get();
       snap.forEach(d => {
@@ -447,24 +423,25 @@ async function renderPosiciones() {
         if (x.p3 === E.config.real3) g += E.config.ptsTercero;
         puntos[d.id] = (puntos[d.id] || 0) + g;
       });
-    } catch (e) { /* aún bloqueado por deadline */ }
+    } catch (e) {}
   }
 
   const filas = Object.keys(E.usuarios)
     .map(u => ({ uid: u, nombre: E.usuarios[u], pts: puntos[u] || 0, ok: aciertos[u] || 0 }))
-    .sort((a,b) => b.pts - a.pts || a.nombre.localeCompare(b.nombre));
+    .sort((a, b) => b.pts - a.pts || a.nombre.localeCompare(b.nombre));
 
   cont.innerHTML = `
   <table class="tabla">
     <thead><tr><th class="pos">#</th><th>Participante</th><th class="num">Aciertos</th><th class="num">Puntos</th></tr></thead>
     <tbody>
-      ${filas.map((f,i) => `
-        <tr class="${i===0 && f.pts>0 ? 'lider':''} ${f.uid===E.user.uid?'yo':''}">
-          <td class="pos">${i+1}</td><td>${esc(f.nombre)}</td>
+      ${filas.map((f, i) => `
+        <tr class="${i === 0 && f.pts > 0 ? 'lider' : ''} ${f.uid === E.user.uid ? 'yo' : ''}">
+          <td class="pos">${i + 1}</td><td>${esc(f.nombre)}</td>
           <td class="num">${f.ok}</td><td class="num">${f.pts}</td>
         </tr>`).join("")}
     </tbody>
-  </table>`;
+  </table>
+  ${conResultado.length ? "" : `<p class="nota" style="margin-top:8px">Aún no hay resultados capturados; la tabla arranca cuando registres el primero.</p>`}`;
 }
 
 // =====================================================
