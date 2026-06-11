@@ -1,0 +1,115 @@
+rules_version = '2';
+// =====================================================================
+// QUINIELA ///26 — Reglas de seguridad de Firestore
+// Los candados importantes viven AQUÍ (no en el frontend):
+//  1) Nadie puede escribir una predicción después de (kickoff − 1 hora).
+//  2) Una predicción confirmada es inmutable.
+//  3) Los picks de otros solo se pueden leer después del cierre.
+//  4) Partidos, resultados y configuración: solo el admin.
+// =====================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function matchData(matchId) {
+      return get(/databases/$(database)/documents/matches/$(matchId)).data;
+    }
+
+    // true mientras falte más de 1 hora para el partido
+    function antesDelCierre(matchId) {
+      return request.time < matchData(matchId).kickoff - duration.value(1, 'h');
+    }
+
+    function configGeneral() {
+      return get(/databases/$(database)/documents/config/general).data;
+    }
+
+    // ---------- admins: se administra desde la consola de Firebase ----------
+    match /admins/{uid} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ---------- perfiles de usuario ----------
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- partidos y resultados ----------
+    match /matches/{matchId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- configuración ----------
+    match /config/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- predicciones de marcador ----------
+    match /predictions/{predId} {
+      // Leer: las mías siempre; las de otros solo al cierre (o siendo admin)
+      allow read: if signedIn() && (
+        resource.data.uid == request.auth.uid
+        || isAdmin()
+        || request.time >= matchData(resource.data.matchId).kickoff - duration.value(1, 'h')
+      );
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && predId == request.auth.uid + '_' + request.resource.data.matchId
+        && request.resource.data.home is int && request.resource.data.home >= 0
+        && request.resource.data.away is int && request.resource.data.away >= 0
+        && request.resource.data.confirmed is bool
+        && antesDelCierre(request.resource.data.matchId);
+
+      // Actualizar: solo el dueño, solo si NO está confirmada y antes del cierre
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.confirmed == false
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.matchId == resource.data.matchId
+        && request.resource.data.home is int && request.resource.data.home >= 0
+        && request.resource.data.away is int && request.resource.data.away >= 0
+        && antesDelCierre(resource.data.matchId);
+
+      allow delete: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.confirmed == false
+        && antesDelCierre(resource.data.matchId);
+    }
+
+    // ---------- predicción de podio (campeón / sub / tercero) ----------
+    match /podium/{uid} {
+      // Leer: el mío siempre; los demás solo cuando pase la fecha límite del podio
+      allow read: if signedIn() && (
+        uid == request.auth.uid
+        || isAdmin()
+        || request.time >= configGeneral().podiumDeadline
+      );
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.confirmed is bool
+        && request.time < configGeneral().podiumDeadline;
+
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && resource.data.confirmed == false
+        && request.time < configGeneral().podiumDeadline;
+
+      allow delete: if false;
+    }
+  }
+}

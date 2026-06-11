@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiniela ///26 — Mundial 2026</title>
+<meta name="description" content="Quiniela de la oficina para el Mundial 2026">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="vista-login" class="login-wrap oculto">
+  <div class="login-card">
+    <div class="marca">
+      <span class="marca-slash"><i class="s s-verde"></i><i class="s s-crema"></i><i class="s s-rojo"></i></span>
+      <h1>QUINIELA <em>///26</em></h1>
+      <p class="marca-sub">MÉXICO · USA · CANADÁ — La quiniela de la oficina</p>
+    </div>
+    <form id="form-login" autocomplete="on">
+      <label for="login-email">Correo</label>
+      <input type="email" id="login-email" required placeholder="tu@correo.com" autocomplete="username">
+      <label for="login-pass">Contraseña</label>
+      <input type="password" id="login-pass" required placeholder="••••••••" autocomplete="current-password">
+      <button type="submit" class="btn btn-primario btn-bloque">Entrar</button>
+      <p id="login-error" class="msg-error oculto"></p>
+      <button type="button" id="btn-olvide" class="btn-enlace">Olvidé mi contraseña</button>
+    </form>
+  </div>
+  <p class="login-pie">Si todavía no tienes cuenta, pídele al admin que te dé de alta.</p>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="vista-app" class="oculto">
+  <header class="encabezado">
+    <div class="encabezado-int">
+      <div class="marca marca-mini">
+        <span class="marca-slash"><i class="s s-verde"></i><i class="s s-crema"></i><i class="s s-rojo"></i></span>
+        <strong>QUINIELA <em>///26</em></strong>
+      </div>
+      <div class="encabezado-der">
+        <span id="hola-usuario" class="hola"></span>
+        <button id="btn-salir" class="btn btn-fantasma btn-chico">Salir</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs-nav">
+      <button class="tab activo" data-tab="partidos">Partidos</button>
+      <button class="tab" data-tab="posiciones">Posiciones</button>
+      <button class="tab" data-tab="podio">Podio</button>
+      <button class="tab oculto" data-tab="admin" id="tab-admin">Admin</button>
+    </nav>
+  </header>
+
+  <main class="contenido">
+
+    <!-- ---- PARTIDOS ---- -->
+    <section id="panel-partidos" class="panel">
+      <div class="filtros">
+        <div class="chips" id="chips-fase"></div>
+        <div class="chips chips-scroll" id="chips-dias"></div>
+      </div>
+      <div id="lista-partidos" class="lista-partidos">
+        <p class="vacio">Cargando partidos…</p>
+      </div>
+    </section>
+
+    <!-- ---- POSICIONES ---- -->
+    <section id="panel-posiciones" class="panel oculto">
+      <div class="filtros">
+        <div class="chips" id="chips-pos"></div>
+      </div>
+      <div id="tabla-posiciones"></div>
+      <p class="nota">Puntos por partido: marcador exacto <b id="pts-exacto">5</b> · ganador y diferencia <b id="pts-diff">3</b> · solo ganador/empate <b id="pts-ganador">2</b>. Podio: campeón <b id="pts-campeon">10</b> · subcampeón <b id="pts-sub">6</b> · tercero <b id="pts-tercero">4</b>.</p>
+    </section>
+
+    <!-- ---- PODIO ---- -->
+    <section id="panel-podio" class="panel oculto">
+      <div class="tarjeta">
+        <h2 class="titulo-seccion">Mi podio del Mundial</h2>
+        <p class="nota" id="podio-deadline-txt"></p>
+        <div class="podio-grid">
+          <div class="podio-slot">
+            <span class="podio-medalla oro">1°</span>
+            <label>Campeón</label>
+            <select id="podio-1"></select>
+          </div>
+          <div class="podio-slot">
+            <span class="podio-medalla plata">2°</span>
+            <label>Subcampeón</label>
+            <select id="podio-2"></select>
+          </div>
+          <div class="podio-slot">
+            <span class="podio-medalla bronce">3°</span>
+            <label>Tercer lugar</label>
+            <select id="podio-3"></select>
+          </div>
+        </div>
+        <div class="acciones">
+          <button id="btn-podio-guardar" class="btn btn-fantasma">Guardar borrador</button>
+          <button id="btn-podio-confirmar" class="btn btn-primario">Confirmar podio</button>
+        </div>
+        <p id="podio-msg" class="msg oculto"></p>
+      </div>
+      <div class="tarjeta oculto" id="podio-todos-card">
+        <h2 class="titulo-seccion">Podios de todos</h2>
+        <div id="podio-todos"></div>
+      </div>
+    </section>
+
+    <!-- ---- ADMIN ---- -->
+    <section id="panel-admin" class="panel oculto">
+
+      <div class="tarjeta">
+        <h2 class="titulo-seccion">Crear usuario</h2>
+        <div class="form-fila">
+          <div><label>Nombre para mostrar</label><input type="text" id="adm-nombre" placeholder="Juan Pérez"></div>
+          <div><label>Correo (real, para recuperar contraseña)</label><input type="email" id="adm-email" placeholder="juan@empresa.com"></div>
+        </div>
+        <div class="acciones">
+          <button id="btn-crear-usuario" class="btn btn-primario">Crear usuario y generar contraseña</button>
+        </div>
+        <div id="adm-usuario-result" class="resultado-pass oculto"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 class="titulo-seccion">Capturar resultados</h2>
+        <p class="nota">Solo aparecen partidos cuya hora de inicio ya pasó.</p>
+        <div id="adm-resultados"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 class="titulo-seccion">Agregar / editar partido</h2>
+        <div class="form-fila">
+          <div><label>Fase</label>
+            <select id="adm-fase">
+              <option value="GRUPOS">Fase de grupos</option>
+              <option value="R32">Dieciseisavos</option>
+              <option value="R16">Octavos</option>
+              <option value="QF">Cuartos</option>
+              <option value="SF">Semifinal</option>
+              <option value="3P">Tercer lugar</option>
+              <option value="F">Final</option>
+            </select>
+          </div>
+          <div><label>Grupo (solo fase de grupos)</label>
+            <select id="adm-grupo"><option value="">—</option></select>
+          </div>
+        </div>
+        <div class="form-fila">
+          <div><label>Local</label><select id="adm-local"></select></div>
+          <div><label>Visitante</label><select id="adm-visita"></select></div>
+        </div>
+        <div class="form-fila">
+          <div><label>Fecha y hora (tu hora local)</label><input type="datetime-local" id="adm-fecha"></div>
+          <div><label>Sede (opcional)</label><input type="text" id="adm-sede" placeholder="Estadio BBVA, Monterrey"></div>
+        </div>
+        <div class="acciones">
+          <button id="btn-guardar-partido" class="btn btn-primario">Guardar partido</button>
+          <button id="btn-cancelar-edicion" class="btn btn-fantasma oculto">Cancelar edición</button>
+        </div>
+        <p id="adm-partido-msg" class="msg oculto"></p>
+        <details class="importar">
+          <summary>Importar partidos en bloque (JSON)</summary>
+          <p class="nota">Pega un arreglo como el de <code>seed/ejemplo_partidos.json</code>. La hora se interpreta como la escribas en el ISO (incluye el offset, ej. <code>-06:00</code>).</p>
+          <textarea id="adm-import-json" rows="6" placeholder='[{"fase":"GRUPOS","grupo":"A","local":"MEX","visita":"RSA","kickoff":"2026-06-11T13:00:00-06:00","sede":"Estadio Azteca"}]'></textarea>
+          <button id="btn-importar" class="btn btn-fantasma">Importar</button>
+          <p id="adm-import-msg" class="msg oculto"></p>
+        </details>
+        <div id="adm-lista-partidos" class="adm-lista"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 class="titulo-seccion">Configuración</h2>
+        <div class="form-fila">
+          <div><label>Cierre de predicción de podio</label><input type="datetime-local" id="cfg-podio-deadline"></div>
+        </div>
+        <div class="form-fila form-fila-3">
+          <div><label>Pts marcador exacto</label><input type="number" id="cfg-pts-exacto" min="0"></div>
+          <div><label>Pts ganador + diferencia</label><input type="number" id="cfg-pts-diff" min="0"></div>
+          <div><label>Pts solo ganador</label><input type="number" id="cfg-pts-ganador" min="0"></div>
+        </div>
+        <div class="form-fila form-fila-3">
+          <div><label>Pts campeón</label><input type="number" id="cfg-pts-campeon" min="0"></div>
+          <div><label>Pts subcampeón</label><input type="number" id="cfg-pts-sub" min="0"></div>
+          <div><label>Pts tercer lugar</label><input type="number" id="cfg-pts-tercero" min="0"></div>
+        </div>
+        <h3 class="subtitulo">Podio real (captúralo al final del torneo)</h3>
+        <div class="form-fila form-fila-3">
+          <div><label>Campeón</label><select id="cfg-real-1"></select></div>
+          <div><label>Subcampeón</label><select id="cfg-real-2"></select></div>
+          <div><label>Tercero</label><select id="cfg-real-3"></select></div>
+        </div>
+        <div class="acciones">
+          <button id="btn-guardar-config" class="btn btn-primario">Guardar configuración</button>
+        </div>
+        <p id="cfg-msg" class="msg oculto"></p>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="pie">
+    <span class="marca-slash"><i class="s s-verde"></i><i class="s s-crema"></i><i class="s s-rojo"></i></span>
+    Quiniela ///26 · hecha en la oficina, con cariño y cero presupuesto
+  </footer>
+</div>
+
+<div id="cargando" class="cargando"><div class="balon">⚽</div></div>
+
+<!-- Firebase (compat, vía CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="js/config-firebase.js"></script>
+<script src="js/equipos.js"></script>
+<script src="js/app.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
