@@ -357,7 +357,7 @@ async function verPicks(matchId, btn) {
 
 async function obtenerPredicciones(matchId) {
   const p = E.partidos.find(x => x.id === matchId);
-  const llave = "preds26_" + matchId;
+  const llave = "preds26b_" + matchId;
   // partido con resultado → sus predicciones ya no cambian → caché permanente
   if (p && p.resultado) {
     const c = localStorage.getItem(llave);
@@ -374,7 +374,7 @@ async function obtenerPredicciones(matchId) {
       arr.push({ uid: x.uid, home: x.home, away: x.away });
     }
   });
-  if (p && p.resultado) { try { localStorage.setItem(llave, JSON.stringify(arr)); } catch (e) {} }
+  if (p && p.resultado && arr.length) { try { localStorage.setItem(llave, JSON.stringify(arr)); } catch (e) {} }
   return arr;
 }
 
