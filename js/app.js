@@ -357,7 +357,7 @@ async function verPicks(matchId, btn) {
 
 async function obtenerPredicciones(matchId) {
   const p = E.partidos.find(x => x.id === matchId);
-  const llave = "preds26b_" + matchId;
+  const llave = "preds_" + (E.config.cacheVer || 1) + "_" + matchId;
   // partido con resultado → sus predicciones ya no cambian → caché permanente
   if (p && p.resultado) {
     const c = localStorage.getItem(llave);
