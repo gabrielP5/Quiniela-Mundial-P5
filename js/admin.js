@@ -198,12 +198,43 @@ function renderAdmResultados() {
         <span class="vs">–</span>
         <input type="number" min="0" max="20" id="ra-${p.id}" value="${p.resultado ? p.resultado.away : ""}">
         <button class="btn btn-primario btn-chico" data-res="${p.id}">${p.resultado ? "✓" : "Guardar"}</button>
+        <button class="btn btn-fantasma btn-chico" data-json="${p.id}">${p.resumen ? "📋 ✓" : "📋 JSON"}</button>
       </span>
+    </div>
+    <div class="adm-json oculto" id="json-${p.id}">
+      <textarea rows="7" id="ta-${p.id}" placeholder='{"resultado":{"home":2,"away":0},"resumen":{...}}'></textarea>
+      <button class="btn btn-primario btn-chico" data-json-guardar="${p.id}">Guardar resultado + resumen</button>
     </div>`).join("");
 }
 
+function normalizarPartidoJSON(x) {
+  if (!x.resultado || typeof x.resultado.home !== "number" || typeof x.resultado.away !== "number")
+    throw new Error('falta "resultado" con home/away como números.');
+  const r = x.resumen || {};
+  return {
+    resultado: { home: x.resultado.home, away: x.resultado.away },
+    resumen: { goles: r.goles || [], tarjetas: r.tarjetas || [], nota: r.nota || "" }
+  };
+}
+
 async function clickResultados(ev) {
-  const e = ev.target.closest("button[data-res]"); if (!e) return;
+  const e = ev.target.closest("button"); if (!e) return;
+
+  if (e.dataset.json) {
+    return $(`#json-${e.dataset.json}`).classList.toggle("oculto");
+  }
+  if (e.dataset.jsonGuardar) {
+    const id = e.dataset.jsonGuardar;
+    let datos;
+    try { datos = normalizarPartidoJSON(JSON.parse($(`#ta-${id}`).value)); }
+    catch (err) { return alert("No se pudo procesar: " + err.message); }
+    e.disabled = true;
+    await db.collection("matches").doc(id).update(datos);
+    await cargarPartidos();
+    renderAdmResultados(); renderPartidos();
+    return;
+  }
+  if (!e.dataset.res) return;
   const id = e.dataset.res;
   const h = parseInt($(`#rh-${id}`).value, 10), a = parseInt($(`#ra-${id}`).value, 10);
   if (isNaN(h) || isNaN(a)) return alert("Marcador inválido.");

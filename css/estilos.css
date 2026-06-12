@@ -142,6 +142,34 @@ label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase
 .pick-item b{font-family:var(--f-display);font-weight:400}
 .pick-item .p{color:var(--oro);font-size:12px}
 
+/* ---------- premio ---------- */
+.premio-banner{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  background:
+    linear-gradient(120deg, rgba(0,181,96,.10), rgba(41,194,255,.08) 50%, rgba(255,59,78,.10)),
+    var(--tinta-2);
+  border:1px solid var(--linea);border-radius:var(--radio);
+  padding:16px 18px;
+}
+.premio-texto{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;justify-content:center}
+.premio-etiqueta{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gris)}
+.premio-monto{font-family:var(--f-display);font-size:clamp(18px,4vw,26px);color:var(--oro);letter-spacing:.02em}
+.premio-detalle{font-size:13px;color:var(--gris)}
+@media (max-width:640px){
+  .premio-banner{flex-direction:column;gap:8px;text-align:center}
+}
+
+/* ---------- resumen de partido ---------- */
+.resumen{border-top:1px solid var(--linea);padding:12px 16px;background:rgba(0,0,0,.18);font-size:13px}
+.resumen .evento{padding:3px 0}
+.resumen .evento b{font-family:var(--f-display);font-weight:400}
+.resumen-sep{height:1px;background:var(--linea);margin:8px 0}
+.resumen-nota{margin-top:10px;color:var(--gris);line-height:1.5;font-style:italic}
+
+/* ---------- admin: pegar JSON ---------- */
+.adm-json{margin:-4px 0 8px;padding:10px 12px;background:var(--tinta-3);border-radius:0 0 10px 10px}
+.adm-json textarea{font-family:monospace;font-size:12px;margin-bottom:8px}
+
 /* ---------- posiciones ---------- */
 table.tabla{width:100%;border-collapse:collapse;background:var(--tinta-2);border:1px solid var(--linea);border-radius:var(--radio);overflow:hidden}
 .tabla th,.tabla td{padding:11px 12px;text-align:left;font-size:14px}

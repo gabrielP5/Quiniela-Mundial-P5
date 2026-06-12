@@ -141,7 +141,8 @@ async function cargarPartidos() {
       id: d.id, fase: x.fase || "GRUPOS", grupo: x.grupo || "",
       local: x.local, visita: x.visita,
       kickoff: x.kickoff.toDate(), sede: x.sede || "",
-      resultado: x.resultado || null
+      resultado: x.resultado || null,
+      resumen: x.resumen || null
     };
   });
 }
@@ -283,7 +284,8 @@ function tarjetaPartido(p) {
     pie = `
       <span class="mi-pick">${miTxt}</span>
       ${pts}
-      <button class="btn btn-fantasma btn-chico" data-accion="picks" data-id="${p.id}">Ver picks de todos</button>`;
+      <button class="btn btn-fantasma btn-chico" data-accion="picks" data-id="${p.id}">Ver picks de todos</button>
+      ${p.resultado && p.resumen ? `<button class="btn btn-fantasma btn-chico" data-accion="resumen" data-id="${p.id}">Resumen</button>` : ""}`;
   }
 
   return `
@@ -299,7 +301,22 @@ function tarjetaPartido(p) {
     </div>
     <div class="partido-pie">${pie}</div>
     <div class="picks-todos oculto" id="picks-${p.id}"></div>
-  </article>`;
+    ${p.resultado && p.resumen ? `<div class="resumen oculto" id="res-${p.id}">${renderResumen(p)}</div>` : ""}
+    </article>`;
+}
+
+function renderResumen(p) {
+  const r = p.resumen;
+  const goles = (r.goles || []).map(g =>
+    `<div class="evento">⚽ <b>${g.min}'</b> ${esc(g.jugador)} <span class="nota">· ${nombreEquipo(g.equipo)}</span></div>`
+  ).join("");
+  const tarjetas = (r.tarjetas || []).map(t =>
+    `<div class="evento">${t.tipo === "roja" ? "🟥" : "🟨"} <b>${t.min}'</b> ${esc(t.jugador)} <span class="nota">· ${nombreEquipo(t.equipo)}</span></div>`
+  ).join("");
+  return `
+    ${goles || `<div class="evento nota">Sin goles.</div>`}
+    ${tarjetas ? `<div class="resumen-sep"></div>${tarjetas}` : ""}
+    ${r.nota ? `<p class="resumen-nota">${esc(r.nota)}</p>` : ""}`;
 }
 
 $("#lista-partidos").addEventListener("click", async (ev) => {
@@ -308,6 +325,7 @@ $("#lista-partidos").addEventListener("click", async (ev) => {
   const id = btn.dataset.id;
   const accion = btn.dataset.accion;
   if (accion === "picks") return verPicks(id, btn);
+  if (accion === "resumen") return $(`#res-${id}`).classList.toggle("oculto");
   // guardar / confirmar
   const h = parseInt($(`#h-${id}`)?.value, 10);
   const a = parseInt($(`#a-${id}`)?.value, 10);
