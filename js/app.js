@@ -6,7 +6,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const TS = firebase.firestore.Timestamp;
 
-const HORA_LIMITE_MS = 60 * 60 * 1000; // 1 hora antes del partido
+const HORA_LIMITE_MS = 15 * 60 * 1000; // 15 min antes del partido
 
 // -------- estado global --------
 const E = {
