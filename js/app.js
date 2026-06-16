@@ -73,6 +73,7 @@ auth.onAuthStateChanged(async (user) => {
   $("#hola-usuario").textContent = "Hola, " + (E.usuarios[user.uid] || user.email);
   $("#tab-admin").classList.toggle("oculto", !E.esAdmin);
   if (E.esAdmin && typeof initAdmin === "function") initAdmin();
+  if (typeof initEvolucion === "function") initEvolucion();   // NUEVO
 
   renderPartidos();
   renderPosiciones();
@@ -145,6 +146,8 @@ async function cargarPartidos() {
       resumen: x.resumen || null
     };
   });
+  if (typeof evoInvalidar === "function") evoInvalidar();
+
 }
 
 async function cargarMisPredicciones() {
@@ -164,9 +167,10 @@ $("#tabs-nav").addEventListener("click", (ev) => {
   if (!btn) return;
   $$(".tab").forEach(t => t.classList.remove("activo"));
   btn.classList.add("activo");
-  ["partidos","posiciones","podio","admin"].forEach(p => $("#panel-"+p).classList.add("oculto"));
+  ["partidos","posiciones","evolucion","podio","admin"].forEach(p => $("#panel-"+p).classList.add("oculto"));
   $("#panel-" + btn.dataset.tab).classList.remove("oculto");
   if (btn.dataset.tab === "posiciones") renderPosiciones();
+  if (btn.dataset.tab === "evolucion" && typeof renderEvolucion === "function") renderEvolucion();
   if (btn.dataset.tab === "podio") renderPodio();
   if (btn.dataset.tab === "admin" && typeof renderAdmin === "function") renderAdmin();
 });

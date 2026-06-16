@@ -50,6 +50,7 @@
     <nav class="tabs" id="tabs-nav">
       <button class="tab activo" data-tab="partidos">Partidos</button>
       <button class="tab" data-tab="posiciones">Posiciones</button>
+      <button class="tab" data-tab="evolucion">Evolución</button>
       <button class="tab" data-tab="podio">Podio</button>
       <button class="tab oculto" data-tab="admin" id="tab-admin">Admin</button>
     </nav>
@@ -70,17 +71,74 @@
 
     <!-- ---- POSICIONES ---- -->
     <section id="panel-posiciones" class="panel oculto">
-      <div class="premio-banner">
-        <span class="marca-slash"><i class="s s-verde"></i><i class="s s-crema"></i><i class="s s-rojo"></i></span>
-        <div class="premio-texto">
-          <span class="premio-etiqueta">Premio</span>
-          <span class="premio-monto">$1,000 DonP5olaruchos</span>
-          <span class="premio-detalle">en Amazon 🏆</span>
-        </div>
-      </div>
+      <details class="premios">
+        <summary class="premios-cabecera">
+          <span class="marca-slash"><i class="s s-verde"></i><i class="s s-crema"></i><i class="s s-rojo"></i></span>
+          <span class="premios-titulo">Premios</span>
+          <span class="premios-sub">toca para ver</span>
+          <span class="premios-chevron">▾</span>
+        </summary>
+        <div class="premios-wrap"><div class="premios-lista">
+          <div class="premio-fila p1">
+            <span class="premio-medalla oro">1°</span>
+            <span class="premio-cuerpo">
+              <span class="premio-lugar">Campeón</span>
+              <span class="premio-titulo">$1,000 DonP5olaruchos</span>
+              <span class="premio-detalle">en Amazon</span>
+            </span>
+            <span class="premio-emoji">🏆</span>
+          </div>
+          <div class="premio-fila p2">
+            <span class="premio-medalla plata">2°</span>
+            <span class="premio-cuerpo">
+              <span class="premio-lugar">Subcampeón</span>
+              <span class="premio-titulo">6 boletos VIP de Cinépolis</span>
+            </span>
+            <span class="premio-emoji">🎬</span>
+          </div>
+          <div class="premio-fila p3">
+            <span class="premio-medalla bronce">3°</span>
+            <span class="premio-cuerpo">
+              <span class="premio-lugar">Tercer lugar</span>
+              <span class="premio-titulo">Tarjeta de regalo de $500 p5lucholares</span>
+              <span class="premio-detalle">de la tienda que prefieras</span>
+            </span>
+            <span class="premio-emoji">🎁</span>
+          </div>
+        </div></div>
+      </details>
       <div id="tabla-posiciones"></div>
       <p class="nota">Puntos por partido: marcador exacto <b id="pts-exacto">5</b> · ganador y diferencia <b id="pts-diff">3</b> · solo ganador/empate <b id="pts-ganador">2</b>. Podio: campeón <b id="pts-campeon">10</b> · subcampeón <b id="pts-sub">6</b> · tercero <b id="pts-tercero">4</b>.</p>
     </section>
+
+    <!-- ---- EVOLUCIÓN ---- -->
+<section id="panel-evolucion" class="panel oculto">
+  <div class="tarjeta">
+    <h2 class="titulo-seccion">Cómo van cambiando los líderes</h2>
+    <p class="nota">El recorrido de cada quien, partido por partido. Mueve la barra o dale play para ver cómo se movió la tabla.</p>
+    <div id="evo-controles" class="evo-controles oculto">
+      <div class="evo-fila">
+        <div class="evo-modo">
+          <button class="evo-modo-btn activo" data-modo="puntos">Puntos</button>
+          <button class="evo-modo-btn" data-modo="posicion">Posición</button>
+        </div>
+        <div class="evo-slider">
+          <label>Top</label>
+          <input type="range" id="evo-top" min="2" max="10" value="7">
+          <span class="evo-val" id="evo-top-val">7</span>
+        </div>
+      </div>
+      <div class="evo-fila">
+        <button class="evo-play" id="evo-play" aria-label="Reproducir">▶</button>
+        <div class="evo-slider">
+          <input type="range" id="evo-tiempo" min="0" max="0" value="0" aria-label="Avance por partido">
+        </div>
+      </div>
+      <div class="evo-tiempo-val" id="evo-tiempo-val">Inicio</div>
+    </div>
+    <div id="evo-cuerpo"></div>
+  </div>
+</section>
 
     <!-- ---- PODIO ---- -->
     <section id="panel-podio" class="panel oculto">
@@ -223,6 +281,7 @@
 
 <script src="js/config-firebase.js"></script>
 <script src="js/equipos.js"></script>
+<script src="js/evolucion.js"></script>
 <script src="js/app.js"></script>
 <script src="js/admin.js"></script>
 </body>
