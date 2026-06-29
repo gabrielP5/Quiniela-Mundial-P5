@@ -283,6 +283,7 @@ table.tabla{width:100%;border-collapse:collapse;background:var(--tinta-2);border
 .premio-medalla.oro{color:var(--oro);border-color:rgba(255,194,51,.4)}
 .premio-medalla.plata{color:#C9D2E8;border-color:rgba(201,210,232,.35)}
 .premio-medalla.bronce{color:#E0935B;border-color:rgba(224,147,91,.35)}
+.premio-medalla.extra{color:#5ba4e0;border-color:rgba(31, 44, 230, 0.35)}
 .premio-cuerpo{display:flex;flex-direction:column;gap:2px;min-width:0}
 .premio-lugar{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gris)}
 .premio-titulo{font-family:var(--f-display);font-weight:400;line-height:1.15}
